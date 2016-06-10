@@ -1,0 +1,126 @@
+<?php
+
+namespace AppBundle\Controller;
+
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
+use AppBundle\Entity\Pages;
+
+class DefaultController extends Controller
+{
+	/**
+	* @Route("/{url}/delete", name="delete")
+	*/
+	public function deleteAction(Request $request, $url)
+	{
+		$em = $this->getDoctrine()->getManager();
+		$repository = $em->getRepository('AppBundle:Pages');
+		$page = $repository->findOneByUrl($url);
+		$em->remove($page);
+		$em->flush();
+		$navO=$repository->findAll();
+		$nav="<table><tr><td>view</td><td>edit</td><td>delete</a></td></tr>";
+		foreach($navO as $value)
+		{
+			$nav .= "<tr><td><a href=\"../".$value->getUrl()."\">".$value->getLinktext()."</a></td><td><a href=\"../".$value->getUrl()."/edit\">".$value->getLinktext()."</td><td><a href=\"../".$value->getUrl()."/delete\">delete</a></td></tr>";
+		}
+		$nav .= "</table><a href=\"create\">new</a>";
+		return $this->render('default/edit.html.twig', [
+		'id' => '0',
+		'headline' => '',
+		'url' => '',
+		'linktext' => '',
+		'maintext' => '',
+		'nav'=> $nav
+		]);
+	}
+	/**
+	* @Route("/{url}/edit", name="edit")
+	*/
+	public function editAction(Request $request, $url)
+	{ 
+		$em = $this->getDoctrine()->getManager();
+		$repository = $em->getRepository('AppBundle:Pages');
+		$page = $repository->findOneByUrl($url);
+		//ToDo:notfound
+		if($_POST)
+		{
+			if($_POST["id"]==0)
+			{
+				$page = new Pages();
+				$page->setLinktext($_POST["linktext"]);
+				$page->setUrl($_POST["url"]);
+				$page->setHeadline($_POST["headline"]);
+				$page->setMaintext($_POST["maintext"]);
+				$em->persist($page);
+				$em->flush();
+			}
+			else
+			{
+				$page->setLinktext($_POST["linktext"]);
+				$page->setUrl($_POST["url"]);
+				$page->setHeadline($_POST["headline"]);
+				$page->setMaintext($_POST["maintext"]);
+				$em->flush();
+			}
+		}
+		$navO=$repository->findAll();
+		$nav="<table><tr><td>view</td><td>edit</td><td>delete</a></td></tr>";
+		foreach($navO as $value)
+		{
+			$nav .= "<tr><td><a href=\"../".$value->getUrl()."\">".$value->getLinktext()."</td><td><a href=\"../".$value->getUrl()."/edit\">".$value->getLinktext()."</td><td><a href=\"../".$value->getUrl()."/delete\">delete</a></td></tr>";
+		}
+		$nav .= "</table><a href=\"create\">new</a>";
+
+
+		return $this->render('default/edit.html.twig', [
+		'id' => $page->getId(),
+		'headline' => $page->getHeadline(),
+		'url' => $page->getUrl(),
+		'linktext' => $page->getLinktext(),
+		'maintext' => $page->getMaintext(),
+		'nav'=> $nav
+		]);
+	}
+	/**
+	* @Route("/{url}/create", name="create")
+	*/
+	public function createAction()
+	{
+		return $this->render('default/edit.html.twig', [
+		'id' => '0',
+		'headline' => '',
+		'url' => '',
+		'linktext' => '',
+		'maintext' => '',
+		'nav'=> ""
+		]);
+	}
+	/**
+	* @Route("/{url}", name="homepage")
+	*/
+	public function indexAction(Request $request,$url)
+	{
+		// getpagecontent
+		$repository=$this->getDoctrine()->getManager()->getRepository('AppBundle:Pages');
+		$page =$repository->findOneByUrl($url);
+		$navO=$repository->findAll();
+		$nav="<table>";
+		foreach($navO as $value)
+		{
+			$nav .= "<tr><td><a href=\"".$value->getUrl()."\">".$value->getLinktext()."</td></td></tr>";
+		}
+		$nav .= "</table><a href=\"".$page->getUrl()."/edit\">edit</a>";
+
+		//toDo.Notfound
+		return $this->render('default/page.html.twig', [
+		'id' => $page->getId(),
+		'headline' => $page->getHeadline(),
+		'url' => $page->getUrl(),
+		'linktext' => $page->getLinktext(),
+		'maintext' => $page->getMaintext(),
+		'nav'=> $nav
+		]);
+	}
+}
