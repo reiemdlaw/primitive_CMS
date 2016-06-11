@@ -1,4 +1,7 @@
-content
+content primitve CMS
 =======
+first steps:
+php bin/console doctrine:database:create
 
-A Symfony project created on May 26, 2016, 5:02 pm.
+dummy navigation just lists all existing pages.
+a request to an empty database redirects to a create form.
